@@ -1,0 +1,5 @@
+Scrapy==2.13.3
+# 4.4.1 has a bug involving user_id
+python-documentcloud==4.2.0
+requests==2.32.3
+urllib3==2.2.3
