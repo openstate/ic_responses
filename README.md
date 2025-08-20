@@ -13,9 +13,10 @@ project with title specified by `DOCUMENTCLOUD_PROJECT_TITLE` in `settings.py`.
 
   - Clone project
   - Copy `local_settings.py.example` to `local_settings.py` and set values
-  - Change `IC_PATH` and `DOCUMENTCLOUD_PROJECT_TITLE`
+  - Change `IC_PATH`, `NUMBER_RESPONSE_PAGES` and `DOCUMENTCLOUD_PROJECT_TITLE` in `settings.py`
   - If desired, change names of `ARCHIVED_FILENAME` and `ERROR_LOG_NAME`
-  - Build and run using `docker compose -f docker-compose.yml up --build -d`
+  - Build using `sudo docker compose -f docker-compose.yml up --build -d`
+  - Run using `sudo docker exec -it ic_responses-crawler-1 python run_crawler.py` (preferrably use `screen`)
 
 If you must reprocess all responses, make sure to delete the file denoted by `ARCHIVED_FILENAME` first.
 

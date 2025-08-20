@@ -1,5 +1,7 @@
 # Path to the Internet Consultation (do not include the `b1` at the end)
 IC_PATH = "/terrorismeverheerlijking"
+# Number of pages with responses (responses are crawled from last page to page=1)
+NUMBER_RESPONSE_PAGES = 1157
 # Project name on DocumentCloud (project will be automatically created if it does not exist yet)
 DOCUMENTCLOUD_PROJECT_TITLE = "IC Verheerlijken Terrorisme 2025-08"
 

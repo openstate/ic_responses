@@ -5,7 +5,7 @@ from document_storage.document_storage import DocumentStorage
 from items import ICResponseItem
 from scrapy import Spider, Request
 from scrapy.exceptions import CloseSpider
-from settings import DOMAIN, IC_PATH
+from settings import DOMAIN, IC_PATH, NUMBER_RESPONSE_PAGES
 from utils.error_log import ErrorLog
 
 class ICResponsesSpider(Spider):
@@ -13,9 +13,8 @@ class ICResponsesSpider(Spider):
     spider_type = 'items'
     download_delay = 1
     base_url = f'{DOMAIN}{IC_PATH}/reacties/datum/'
-    start_page = 1
 
-    start_urls = [f'{base_url}{start_page}']
+    start_urls = [f'{base_url}{NUMBER_RESPONSE_PAGES}']
 
     def __init__(self):
       locale.setlocale(locale.LC_TIME, 'nl_NL')
@@ -47,7 +46,7 @@ class ICResponsesSpider(Spider):
             self.log_error(message)
             raise CloseSpider(message)
 
-        for item in result_list:
+        for item in reversed(result_list):
           link = item.css('a').attrib["href"]
           response_uuid = link.split('/')[-1]
           if self.document_storage.has_been_archived(response_uuid):
@@ -74,9 +73,9 @@ class ICResponsesSpider(Spider):
           })
           self.last_response_number = response_number
 
-        next_page = self.get_next_page(response.url)
-        if next_page:
-            yield Request(next_page)
+        previous_page = self.get_previous_page(response.url)
+        if previous_page:
+            yield Request(previous_page)
 
 
     def get_ic_response_contents(self, response):
@@ -101,15 +100,17 @@ class ICResponsesSpider(Spider):
 
         yield item
 
-    def get_next_page(self, url):
+    def get_previous_page(self, url):
         # url is of the form 'https://www.internetconsultatie.nl/terrorismeverheerlijking/reacties/datum/N'
-        # Determine N and increase by 1
+        # Determine N and decrease by 1
         page_number = None
         page_number_string = url.split('/')[-1]
         try:
-           page_number = int(page_number_string) + 1
+           page_number = int(page_number_string) - 1
+           if page_number == 0:
+               return
         except ValueError as e:
-           return None
-        print(f"\n\nNew page number: {page_number}")
+           return
 
+        print(f"\n\nNew page number: {page_number}")
         return f'{self.base_url}{page_number}'

@@ -16,7 +16,7 @@ class DocumentCloudPipeline:
        "place": item['place'],
        "timestamp": item.get_timestamp()
     }
-    title = f"{item['response_number']} - {item['name']} - {item['place']}"
+    title = f"{item['response_number']:05d} - {item['name']} - {item['place']}"
     response_uuid = item.get_response_uuid()
     description = item.get_description()
     source = "Internet Consultatie 'Wetsvoorstel strafbaarstelling verheerlijken van terrorisme en openbare steunbetuiging aan terroristische organisaties'"
