@@ -6,11 +6,7 @@ services:
       - .:/opt/ic_responses
       - ./spiders:/opt/ic_responses/spiders
     networks:
-      - nginx-load-balancer
       - ic_responses
 networks:
   ic_responses:
-  nginx-load-balancer:
-    name: docker_nginx-load-balancer
-    external: true
 

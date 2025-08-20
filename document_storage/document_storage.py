@@ -1,73 +1,94 @@
 import io
 import logging
+import threading
 
 from documentcloud import DocumentCloud
 from documentcloud.exceptions import DoesNotExistError
-from .settings import DOCUMENTCLOUD_USERNAME, DOCUMENTCLOUD_PASSWORD
+from settings import ARCHIVED_FILENAME, DOCUMENTCLOUD_USERNAME, DOCUMENTCLOUD_PASSWORD, DOCUMENTCLOUD_PROJECT_TITLE
+
+lock = threading.Lock()
 
 class DocumentStorage():
-  PROJECT_TITLE = "IC Verheerlijken Terrorisme 2025-08"
-  ARCHIVED_FILENAME = 'archived.txt'
-
   def __init__(self):
-    self.client = DocumentCloud(DOCUMENTCLOUD_USERNAME, DOCUMENTCLOUD_PASSWORD, loglevel=logging.DEBUG)
+    self.client = DocumentCloud(DOCUMENTCLOUD_USERNAME, DOCUMENTCLOUD_PASSWORD, loglevel=logging.INFO)
     self._ensure_project()
     self._get_archive()
 
   def _ensure_project(self):
     try:
-      self.project = self.client.projects.get(title=self.PROJECT_TITLE)
+      self.project = self.client.projects.get(title=DOCUMENTCLOUD_PROJECT_TITLE)
     except DoesNotExistError:
       self.project =  self.client.projects.create(
-        title = self.PROJECT_TITLE,
+        title = DOCUMENTCLOUD_PROJECT_TITLE,
         private = False
       )
 
   def _get_archive(self):
     try:
-      with open(self.ARCHIVED_FILENAME, 'r') as f:
+      with open(ARCHIVED_FILENAME, 'r') as f:
         self.archived = f.read().splitlines()
     except FileNotFoundError as e:
       self.archived = []
 
-    self.archive_file = open(self.ARCHIVED_FILENAME, 'a')
+    self.archive_file = open(ARCHIVED_FILENAME, 'a')
 
-  def _add_to_archive(self, filename):
-    self.archived.append(filename)
-    self.archive_file.write(f"{filename}\n")
-    self.archive_file.flush()
+  def _add_to_archive(self, response_uuid):
+    lock.acquire()
 
-  def has_been_archived(self, filename):
-    return filename in self.archived
+    try:
+      self.archived.append(response_uuid)
+      self.archive_file.write(f"{response_uuid}\n")
+      self.archive_file.flush()
+    finally:
+      lock.release()
 
-  def upload_file(self, local_path, filename, extension, meta_data):
-    if self.has_been_archived(filename): return
+  def has_been_archived(self, response_uuid):
+    lock.acquire()
+    present = response_uuid in self.archived
+    lock.release()
+    return present
+
+  def get_last_response_number(self):
+    lock.acquire()
+    length =  len(self.archived)
+    lock.release()
+    return length
+
+  def upload_file(self, local_path, title, response_uuid, extension, meta_data, description, source, published_url, related_article):
+    if self.has_been_archived(response_uuid): return
 
     self.client.documents.upload(
       local_path,
       original_extension = extension,
       access = 'public',
       project = self.project.id,
-      title = filename,
-      data = meta_data
+      title = title,
+      data = meta_data,
+      description = description,
+      source = source,
+      published_url = published_url,
+      related_article = related_article
     )
 
-    self._add_to_archive(filename)
+    self._add_to_archive(response_uuid)
 
-  def upload_text(self, text, filename, meta_data):
-    if self.has_been_archived(filename):
-      print(f"\n\n FILE {filename} has already been archived")
-      return
+  def upload_text(self, text, title, response_uuid, meta_data, description, source, published_url, related_article):
+    if self.has_been_archived(response_uuid): return
 
     stream = io.StringIO(text)
-    stream.name = filename
+    stream.name = response_uuid
 
     self.client.documents.upload(
       stream,
       original_extension = 'txt',
       access = 'public',
       project = self.project.id,
-      data = meta_data
+      title = title,
+      data = meta_data,
+      description = description,
+      source = source,
+      published_url = published_url,
+      related_article = related_article
     )
 
-    self._add_to_archive(filename)
+    self._add_to_archive(response_uuid)

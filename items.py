@@ -8,8 +8,9 @@ class ICResponseItem(scrapy.Item):
   url = scrapy.Field()
   text = scrapy.Field()
   attachments = scrapy.Field()
+  response_number = scrapy.Field()
 
-  def get_filename(self):
+  def get_response_uuid(self):
     return self['url'].split('/')[-1]
 
   def get_timestamp(self):
@@ -17,3 +18,6 @@ class ICResponseItem(scrapy.Item):
     if not timestamp: return
 
     return datetime.strftime(timestamp, "%d %B %Y (%H:%M)")
+  
+  def get_description(self):
+    return f"Reactie van {self['name']}, {self['place']} op {self.get_timestamp()}"
