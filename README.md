@@ -26,3 +26,16 @@ The loglevel for `DocumentCloud` is set to `INFO` and can be changed in `documen
 
 `Scrapy` automatically logs the items that have been scraped. We suppress that using `QuietLogFormatter`.
 If you do want to log all items, uncomment the line for `LOG_SCRAPED_ITEMS` in `ICResponsesSpider`.
+
+
+## Miscellaneous
+
+You can use `manage.py` for the following:
+
+  - If not all responses were uploaded to DocumentCloud, use command `get-missing` to find the `response_number`s which are missing. 
+    Using these numbers it is possible to upload these individually, by manually tweaking `start_urls` and the initialization
+    of `last_response_number` in `ICResponsesSpider.py`.
+  - Create an `overview.csv` of all responses in DocumentCloud using command `generate-overview`. Each line will contain
+    a response in the form of `'"url","name","place","timestamp"'`.
+
+Usage: `sudo docker exec -it ic_responses-crawler-1 python manage <command>`
